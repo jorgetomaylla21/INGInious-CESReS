@@ -1,0 +1,27 @@
+from flask import Flask, request, jsonify
+import socket
+
+app = Flask(__name__)
+
+@app.route('/process', methods=['POST'])
+def process_code():
+    data = request.get_json()
+    code_input = data.get('code_input')
+    
+    # Call a function to process the code input and filter the response
+    response = filter_response(code_input)
+    
+    return jsonify(response)
+
+def filter_response(code_input):
+    # Example filter function that processes the code input
+    # Replace this logic with your actual processing and filtering logic
+    filtered_response = {
+        'original_input': code_input,
+        'filtered_output': code_input[::-1]  # Just reversing the input as an example
+    }
+    return filtered_response
+
+if __name__ == '__main__':
+    # Use socket to bind to an IPv6 address
+    app.run(host='', port=8000, debug=True)  # Replace '::1' with your IPv6 address if needed

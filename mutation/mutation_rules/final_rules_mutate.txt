@@ -1,0 +1,77 @@
+print_return,miss_return 1
+$   return :[1] => print(:[1])
+;
+
+miss_return 1
+£   remove_return
+;
+
+bad_division 1
+£   division_change
+;
+
+bad_variable 1
+£   other_variable
+£   random_variable
+;
+
+bad_loop 1
+$   while :[cdt]: -> while True:
+$   while -> for
+$   for -> while
+$   :[ space]if -> :[space]for || :[space]while
+£   remove_assign_while
+;
+
+bad_range 1
+$   for :[var] in range(:[value]) -> for :[var] in :[value]
+£   out_of_bounds_range
+£   for_range
+;
+
+bad_assign 1
+£   comparison_to_assign
+£   assign_to_comparison
+;
+
+bad_list 1
+£   list_to_tuple
+$   :[[lst]].append(:[value]) -> :[lst] = :[lst].append(:[value])
+$   :[[lst]].append(:[value]) -> :[lst][0] = :[value] || :[lst] += :[value] || :[lst] = :[lst] + :[value]
+;
+
+bad_file 1
+£   miss_close
+£   with_to_open
+£   bad_open_mode
+$   open(:[file], :[mode]) -> open(:[file])
+;
+
+miss_try 1
+£   remove_try
+£   miss_except
+;
+
+miss_parenthesis 1
+£   remove_parenthesis
+;
+
+hardcoded_arg 1
+£   hardcode_arg
+;
+
+overwrite_not_increment 1
+£   clear_operation_assign
+;
+
+miss_loop 1
+£   remove_nested_loop
+;
+
+correct 1
+# £   print_before_return
+£   change_operand_order
+£   unravel_operation_assign
+£   ravel_assign
+£   identity
+;

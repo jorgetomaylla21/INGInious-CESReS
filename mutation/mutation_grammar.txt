@@ -1,0 +1,224 @@
+# =======================================================
+#
+# Grammar specification for the mutation rule files
+#
+# Author: Guillaume Steveny ; Year: 2023-2024
+#
+# =======================================================
+
+Comments:
+    LF = line feed (\x0a)
+    comby* = refers to expression writable for the Comby tool (https://comby.dev/) with specific expressions discussed in "Special values"
+    _ = space (\x20)
+    e = empty string
+
+
+# -------------------------------------------------------
+
+    CONTENT := COMMENT | BLOCK
+
+    COMMENT := # .* LF
+
+    BLOCK := LABELS _ COUNT LF RULES ; LF
+
+    LABELS := [^(_|\n|\$|£)][^(_|\n)]* OTHER_LABELS
+    OTHER_LABELS := , LABELS | e
+
+    COUNT := [1-9]\d+
+
+    RULES := COMBY | REDBARON | e
+
+    COMBY := \$ (_){3} PATTERN TYPE REPLACES LF RULES
+    REPLACES := REPLACE OTHER_REPLACE
+    OTHER_REPLACE := \|\| REPLACES | e
+
+    PATTERN := comby*
+    TYPE := _(-|=)>_
+    REPLACE := comby*
+
+    REDBARON := £ (_){3} NAME LF RULES
+
+
+# -------------------------------------------------------
+
+Special values and NAME choices:
+
+    Inside a comby expression:
+        $c{CHOICE} = Indicates a random choice of value inside the CHOICE structure.
+        CHOICE is formatted as: .*(\|.)*
+        $b = Indicates that an empty string should replace this component.
+        -> = Indicates that only a random match should be mutated. (If 'randomness' activated, else take the first)
+        => = Indicates that all matches should be mutated.
+
+    NAME values:  (identifier in parentheses correspond to optional parameters given in the specified order)
+        remove_try                  = Replace a complete try-except block with the content of the try.
+
+        other_variable              = Replace a variable with another variable inside the same code snippet.
+
+        random_variable             = Replace a variable with a random variable not already inside the code snippet.
+
+        value_change (TYPE) (VALUE) = Replace a value of type TYPE with adding VALUE to it.
+                                      TYPE: i = int, f = float and a = both - default = int.
+                                      VALUE: default = random value in [1, -2, -1, 2].
+
+        remove_assign_while (INIT)  = Remove all the assignment where the left-hand side corresponds to an expression
+                                      in the condition of a while loop. INIT can change the behaviour of the rule if set
+                                      to i.
+                                      INIT: i = remove one assign at the parent level.
+
+        with_to_open (CLOSE)        = Replace a with block with the content of its body prepended with the assigns in the
+                                      with statement. CLOSE can chane the behaviour of the rule if set to c.
+                                      CLOSE: c = add '.close()' statements at the end of the body for the corresponding
+                                                 variables
+
+        remove_return               = Remove a return statement from the code snippet.
+
+        for_range                   = Replace a "for VAR in VAL" with "for VAR in range(VAL)" if VAL does not contain a
+                                      reference to range.
+
+        revert_slice (SIGN)         = Exchange the lower and upped bound value in a slicing operation. The upper bound
+                                      becomes the lower one and vice-versa. SIGN can specify if a bound should change
+                                      sign when being exchanged.
+                                      SIGN: u = modify upper bound, l = modify lower bound and a = both - default = None
+
+        suppress_part_slice (VALUE) = Remove a value inside a slicing operation. VALUE indicates with components should
+                                      be deleted.
+                                      VALUE: sequence of letters taken from {l, u, s} where l is reference the lower
+                                      bound, u the upper bound and s the step parameter - default = random combination
+
+        remove_arg_call             = Remove an argument from a call to a function. If the function as only one
+                                      argument value, the call is made without argument. This does not apply on
+                                      function definition.
+
+        remove_call                 = Completely remove a call to a function. The function name is left untouched but
+                                      the trailing parentheses are removed as well as the argument that could be found
+                                      inside.
+
+        change_sign (TYPE)          = Change the sign of a value of type TYPE.
+                                      TYPE: i = int, f = float and a = both - default = int.
+
+        remove_nested_loop (DELETE) = Replace a loop with its body. DELETE can change the behaviour of this rule if set to d.
+                                      DELETE: d = replace the complete loop with an empty hole.
+
+        remove_if_else (ELSE)       = Replace an if-else block with the content of the if body. ELSE can change the behaviour
+                                      of this rule if set to e.
+                                      ELSE: e = replace the block with the content of the else body.
+
+        suppress_if (BLOCK)         = Remove a complete if-else block. BLOCK can specify which block should be removed.
+                                      BLOCK: if = only removes 'if' part, elif = only removes 'elif' part, else = only
+                                      removes 'else' part.
+
+        list_to_tuple               = Replace a list instantiation (values enclosed in brackets) with a tuple creation.
+                                      This means that the brackets "[]" are replaced with parentheses "()"
+
+        change_comparison           = Randomly replace a binary/equality comparison with another operator. The list of
+                                      considered operators is [==, !=, >, >=, <=, <]. The replacement is selected inside
+                                      this list.
+
+        identity                    = Return the original code.
+
+        remove_self                 = Remove a variable named "self" anywhere inside the input code. Nothing replaces
+                                      the variable. If it occurred inside a function definition, the function has one
+                                      argument missing. Otherwise, the surrounding code of the variable is left untouched.
+
+        misplace_return             = Move a return instruction to another place inside the body of the function
+                                      containing this instruction. The instruction will be moved before another
+                                      randomly selected instruction at the same indentation level as the initial return.
+
+        assign_to_comparison        = Replace an assign operation ("=") with an equality comparison operator ("==").
+
+        comparison_to_assign        = Replace an equality comparison operator ("==") with an assign operation ("=").
+
+        change_operand_order        = Exchange the operands inside a binary operation. This swapping operation is made
+                                      to keep the semantics of the original expression. This means that operators
+                                      like "<" or ">" are inverted to be correct the swap.
+
+        clear_aug_assign            = Remove the operator inside an augmented assign, e.g. "+=" becomes "=".
+
+        unravel_aug_assign          = Replace an augmented assign with its complete formulation, e.g. "a += 2" becomes
+                                      "a = a + 2".
+
+        ravel_assign                = Replace an expression using a binary operator to update a value with an augmented
+                                      assign equivalent. This is only possible if the left-hand side of the assign
+                                      instruction is also present as one of the two operand in the binary operation.
+                                      Example: "a = a + 2" becomes "a += 2".
+
+        return_in_init              = Find a definition to the method "__init__" and adds, as last body instruction, a
+                                      return for a dummy value (either self or the class name).
+
+        out_of_bounds_range         = Add a "+1" inside the expression found inside a random call to the "range" function.
+
+        division_change             = Replace "/" with "//" and conversely.
+
+        print_before_return         = Add a print instruction as instruction preceding a return statement. The print
+                                      argument will be the value contained in the following return.
+
+        indent_return               = Select a return statement appearing just after an indented block and add one level
+                                      of indentation to the selected instruction.
+
+        bad_open_mode               = Replace the opening mode inside the arguments of an "open" function call. If the
+                                      mode is "r", it is replaced with "w". Otherwise, "w" is replaced with "r".
+
+        miss_close                  = Supress a call to methods named "close". The considered methods can not only refer
+                                      to the "close" method on file stream but to every object where this method can be
+                                      called.
+
+        miss_except                 = Remove an except block inside a try-except construction. The block and its content
+                                      are not replaced.
+
+        replace_all_var             = Randomly rename a variable and all its occurrences. The name is selected among a
+                                      predefined list of choices until the rule finds an unused name. If nothing has
+                                      been found, the name is randomly generated by selecting letters in an ascii table.
+
+        rename_all_def              = Rename all functions defined in the code snippet to have a dummy name. The names
+                                      follow the format: "function_NUMBER" where NUMBER is the position of this
+                                      function definition.
+
+        rename_all_vars_dummy       = Rename all variables defined in the code snippet to have a dummy name. The names
+                                      follow the format: "var_NUMBER" where NUMBER represents the position of this
+                                      variable in the set of variables.
+
+        remove_comments_and_docstrings  = Remove all the comments and the docstrings. Comments mean part of lines
+                                          starting with a # and ending with a line feed. Docstrings refer to multi-lines
+                                          strings that appear just after a function signature. A multi-lines string
+                                          following the docstring is not removed.
+
+        remove_parenthesis          = Replace an associative parenthesis expression with the content enclosed in the
+                                      parentheses.
+
+        hardcode_arg                = Add an instruction at the start of the body of a function with at least one
+                                      argument where one of the function argument is assigned to a random integer
+                                      between 0 and 20.
+
+
+# -------------------------------------------------------
+
+Explanations:
+
+    A comment starts with a '#' and ends with a new line.
+    Each rule block is first composed of its associated labels and then by the list of rules.
+    Labels can be combined when separated by ','.
+    COUNT corresponds to the number of rule that should be applied randomly in the set.
+    Inside a rule set, $ indicates Comby rules, £ RedBaron ones.
+    A block ends with ';'.
+
+    You can have multiple replaces inside a Comby rule with using || between replaces
+
+
+# -------------------------------------------------------
+
+Example:
+
+# This is a comment
+
+label_one,label_two 1
+$   :[ space]if -> :[space]for || :[space]while
+$   :[[fct]]() => :[fct]
+$   return :[value] => $b
+$   0 -> $c{1|2|3}
+;
+
+other_label 2
+£   revert_slice
+£   with_to_open c
+;

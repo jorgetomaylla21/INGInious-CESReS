@@ -1,0 +1,30 @@
+# Comments starts with # and span an entire line
+
+# Rulesets are formatted like:
+# NAME COUNT 
+# S   RULE1
+# ...
+# S   RULE2
+# ;
+# 
+# NAME is the label, COUNT the number of rules to randomly apply and S the specifier ($ for Comby, £ for RedBaron).
+# The three spaces after S are required.
+# Different type of rules can be mixed.
+
+# For Comby patterns, consider https://comby.dev/
+# For RedBaron, you can execute "redbaron_rules.py" and type ? in the prompt
+
+# " => " transforms all matches
+all_return_to_print_comby 1 
+$   return :[value] => print(:[value])
+;
+
+# " -> " transforms one match
+one_return_to_print_comby 1
+$   return :[value] -> print(:[value])
+;
+
+# Otherwise, you can use RedBaron predefined rules
+hardcode_arg 1
+£   hardcode_arg
+;

@@ -1,0 +1,86 @@
+# Basic config file
+# comment for empty args
+
+VOCABULARY:
+    huggingface_model: "Enoch/graphcodebert-py"
+
+READER:
+    huggingface_model: "Enoch/graphcodebert-py"
+    snippet_splitter: "\n$$$\n"
+    label_splitter: " $x$ "
+    multi_labels: " ; "
+    part_graph: [256, 256]
+    # kwargs_tokenizer:
+    # kwargs_indexer:
+
+MODEL:
+    labels:
+        - "miss_return"
+        - "print_return"
+        - "bad_division"
+        - "bad_variable"
+        - "bad_loop"
+        - "bad_range"
+        - "bad_assign"
+        - "bad_list"
+        - "bad_file"
+        - "miss_try"
+        - "miss_parenthesis"
+        - "hardcoded_arg"
+        - "overwrite_not_increment"
+        - "miss_loop"
+        - "failed"
+        - "correct"
+    huggingface_model: "Enoch/graphcodebert-py"
+    kwargs_embedder:
+        trainable: True
+    embedding_size: 768
+    encoder:
+        name: "bert_pooler"
+        arg: ["Enoch/graphcodebert-py"]
+        # kwargs:
+    classification_head:
+        name: "mult_dense"
+        arg: [ 1, 768, 18 ]
+        kwargs:
+            activation:
+                name: "leaky_relu"
+                # arg:
+                # kwargs:
+            norm: True
+   # accuracy:
+        # name: "categorical_accuracy"
+        # arg:
+        # kwargs:
+    loss:
+        name: "multilabel_soft_margin_loss"
+    multi_label: True
+    debug: False
+
+TRAINER:
+    validation_metric: "-loss"
+    learning_rate: 1.e-5
+
+INTERPRETER:
+    captum: True
+    kwargs:
+        interpreter_name: "LayerIntegratedGradients"
+        layer: "bert_interpretable_layer"
+        attribute_kwargs:
+            n_steps: 10
+            internal_batch_size: 1
+
+CONFIG:
+    predict: True
+    no_loop: True
+    no_eval: True
+    gui: False
+    model: "Enoch/graphcodebert-py"
+    training: "demo/train.txt"
+    validation: "demo/validation.txt"
+    evaluation: "demo/test.txt"
+    serialization_dir: "demo"
+    no_loop_weight_file: "model_weights.th"
+    batch_size: 8
+    loops: 10
+    device: "cpu"
