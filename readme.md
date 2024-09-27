@@ -1,8 +1,7 @@
 # CESReS -- Code Embeddings for a Student Recommendation System
 ## When BERT becomes your tutor
-
 Repository of the Master's thesis of Guillaume Steveny at UCLouvain, under the supervision of Pr. Siegfried Nijssen, Pr. Kim Mens and Julien Lienard.
-The objective was to develop a machine learning model based on embeddings to classify students' submissions according to specific misconceptions.
+The objective was to develop amachine learning model based on embeddings to classify students' submissions according to specific misconceptions.
 We used GraphCodeBERT as an embedder (version from Enoch on HuggingFace [^1]) and created our training instances by developing a mutation labelling program.
 This idea came from the DeepBugs [^2] system and uses Comby [^3] and RedBaron [^4] to inject the errors.
 
